@@ -1,1 +1,58 @@
+<html>
+<head>
+  <title>Twilio Web Call</title>
+  <script src="https://sdk.twilio.com/js/client/v1.13/twilio.js"></script>
+</head>
+<body>
+  <h2>Make a Call</h2>
+  <input id="phoneNumber" placeholder="+14155550100" />
+  <button onclick="makeCall()">Call</button>
+  <button onclick="hangup()">Hangup</button>
 
+  <script>
+    let device;
+
+    async function setupDevice() {
+      // Fetch a fresh token from backend
+      const resp = await fetch("https://947adf3c6886.ngrok-free.app/routes/token");
+      const data = await resp.json();
+
+      device = new Twilio.Device(data.token, {
+        logLevel: 1
+      });
+
+      device.on("ready", () => {
+        console.log("Twilio.Device ready!");
+      });
+
+      device.on("error", (error) => {
+        console.error("Twilio.Device error:", error);
+      });
+
+      device.on("disconnect", () => {
+        console.log("Call ended.");
+      });
+    }
+
+    async function makeCall() {
+      const number = document.getElementById("phoneNumber").value;
+      if (!number) {
+        alert("Enter a phone number");
+        return;
+      }
+      if (!device) await setupDevice();
+
+      device.connect({ To: number });
+    }
+
+    function hangup() {
+      if (device) {
+        device.disconnectAll();
+      }
+    }
+
+    // Initialize on load
+    setupDevice();
+  </script>
+</body>
+</html>
